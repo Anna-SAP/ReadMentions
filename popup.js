@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const provider = Array.from(providerRadios).find(r => r.checked).value;
 
-    showStatus("Connecting to page...", "normal");
+    showStatus("Scanning page elements...", "normal");
     scanBtn.disabled = true;
     resultsDiv.innerHTML = '';
 
@@ -54,18 +54,30 @@ document.addEventListener('DOMContentLoaded', () => {
         files: ['content.js']
       });
     } catch (err) {
-      // Ignore if already injected
+      console.log("Script might already be injected", err);
     }
 
+    // Send message with timeout handling
+    let responseReceived = false;
+    
     chrome.tabs.sendMessage(tab.id, { action: "SCRAPE_PAGE" }, async (response) => {
-      if (chrome.runtime.lastError || !response) {
-        showStatus("Connection failed. Please refresh the RingCentral page.", "error");
+      responseReceived = true;
+      
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError);
+        showStatus("Connection error. Try refreshing the page.", "error");
+        scanBtn.disabled = false;
+        return;
+      }
+
+      if (!response || !response.success) {
+        showStatus("Failed to scrape data.", "error");
         scanBtn.disabled = false;
         return;
       }
 
       if (response.count === 0) {
-        showStatus("No mentions found. Scroll down to load messages.", "error");
+        showStatus("Found 0 messages. Please scroll down to load mentions.", "error");
         scanBtn.disabled = false;
         return;
       }
@@ -87,6 +99,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       scanBtn.disabled = false;
     });
+
+    // Fallback if no response in 5 seconds
+    setTimeout(() => {
+        if (!responseReceived && scanBtn.disabled) {
+            showStatus("Timeout: Page not responding. Please refresh.", "error");
+            scanBtn.disabled = false;
+        }
+    }, 5000);
   });
 
   function showStatus(text, type) {
@@ -98,12 +118,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Gemini 1.5 Flash is fast and cheap/free
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
     
+    // Simplification for API payload size
+    const simplifiedMessages = messages.map(m => `[${m.sender} in ${m.context}]: ${m.content.substring(0, 200)}`).join('\n');
+
     const prompt = `
-      You are a helpful assistant. Analyze these RingCentral messages and return a JSON array summarizing actionable items.
-      Format: JSON Array of objects with keys: "priority" (High/Medium/Low), "sender", "summary" (concise), "action" (suggested next step).
+      Task: Summarize these work mentions into a TODO list.
+      Format: JSON Array only. No markdown.
+      Schema: [{"priority": "High"|"Medium"|"Low", "sender": "string", "summary": "string", "action": "string"}]
       
       Messages:
-      ${JSON.stringify(messages).substring(0, 30000)}
+      ${simplifiedMessages}
     `;
 
     const response = await fetch(url, {
@@ -123,10 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function callOpenAI(apiKey, messages) {
+    // Simplification for API payload size
+    const simplifiedMessages = messages.map(m => `[${m.sender} in ${m.context}]: ${m.content.substring(0, 200)}`).join('\n');
+
     const prompt = `
-      Analyze these messages and return a JSON array.
-      Keys: priority (High/Medium/Low), sender, summary, action.
-      Messages: ${JSON.stringify(messages).substring(0, 15000)}
+      Summarize these messages into a JSON array (priority, sender, summary, action).
+      Messages: ${simplifiedMessages}
     `;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -156,7 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
     list.forEach(item => {
       const card = document.createElement('div');
       card.className = 'card';
-      const pClass = item.priority === 'High' ? 'tag-high' : (item.priority === 'Medium' ? 'tag-medium' : 'tag-low');
+      let pClass = 'tag-low';
+      if (item.priority === 'High') pClass = 'tag-high';
+      else if (item.priority === 'Medium') pClass = 'tag-medium';
       
       card.innerHTML = `
         <div class="card-header">
