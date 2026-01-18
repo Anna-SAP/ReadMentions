@@ -115,8 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function callGemini(apiKey, messages) {
-    // Gemini 1.5 Flash is fast and cheap/free
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
+    // Using the stable Gemini 1.5 Flash model
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     
     // Simplification for API payload size
     const simplifiedMessages = messages.map(m => `[${m.sender} in ${m.context}]: ${m.content.substring(0, 200)}`).join('\n');
