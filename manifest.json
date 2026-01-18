@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "RingCentral Smart Mentions",
+  "version": "1.0.0",
+  "description": "Automatically summarize RingCentral mentions using Gemini AI.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://app.ringcentral.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Summarize Mentions"
+  },
+  "icons": {
+    "128": "icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["content.js"],
+      "matches": ["https://app.ringcentral.com/*"]
+    }
+  ]
+}

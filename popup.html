@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RC Smart Summary</title>
+  <style>
+    body { width: 360px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 16px; margin: 0; background-color: #f9f9f9; color: #333; }
+    h2 { margin-top: 0; font-size: 18px; color: #066fac; display: flex; align-items: center; gap: 8px; }
+    .config-box { background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e0e0e0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    
+    .input-group { margin-bottom: 10px; }
+    .input-group:last-child { margin-bottom: 0; }
+    
+    select, input[type="password"] { width: 100%; box-sizing: border-box; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+    label { font-size: 12px; font-weight: 600; color: #555; }
+    
+    button {
+      width: 100%; background-color: #066fac; color: white; border: none;
+      padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;
+      transition: background 0.2s; box-shadow: 0 2px 4px rgba(6, 111, 172, 0.2);
+    }
+    button:hover { background-color: #045280; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; }
+
+    #status { margin-top: 12px; font-size: 12px; color: #666; text-align: center; min-height: 16px; }
+    
+    .result-list { margin-top: 16px; max-height: 400px; overflow-y: auto; padding-right: 2px; }
+    .result-list::-webkit-scrollbar { width: 4px; }
+    .result-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+    .card { background: white; border: 1px solid #eee; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.1s; }
+    .card:hover { transform: translateY(-1px); box-shadow: 0 3px 6px rgba(0,0,0,0.08); }
+    
+    .card-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #888; margin-bottom: 6px; }
+    .sender-name { font-weight: bold; color: #333; font-size: 12px; }
+    
+    .tag { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tag-high { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+    .tag-medium { background: #fff8e1; color: #f57f17; border: 1px solid #ffecb3; }
+    .tag-low { background: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
+    
+    .card-body { font-size: 13px; line-height: 1.5; color: #444; }
+    .card-action { margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0f0f0; font-size: 12px; color: #066fac; font-weight: 500; display: flex; gap: 4px; }
+
+    .provider-toggle { display: flex; gap: 10px; margin-bottom: 8px; }
+    .provider-option { display: flex; align-items: center; font-size: 12px; cursor: pointer; }
+    .provider-option input { margin-right: 4px; }
+
+    .empty-state { text-align: center; color: #999; font-size: 13px; padding: 20px 0; }
+  </style>
+</head>
+<body>
+  <h2>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+    RC Smart Mentions
+  </h2>
+  
+  <div class="config-box">
+    <div class="provider-toggle">
+      <label class="provider-option">
+        <input type="radio" name="provider" value="gemini" checked> Gemini (Recommended)
+      </label>
+      <label class="provider-option">
+        <input type="radio" name="provider" value="openai"> OpenAI
+      </label>
+    </div>
+
+    <div class="input-group">
+      <label for="apiKey">API Key</label>
+      <input type="password" id="apiKey" placeholder="Enter API Key...">
+    </div>
+  </div>
+
+  <button id="scanBtn">Analyze Mentions</button>
+  <div id="status"></div>
+  
+  <div id="results" class="result-list"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
